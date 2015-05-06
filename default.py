@@ -135,9 +135,9 @@ def getCats(gsurl,catname):
 
 
 def getEpis(geurl, catname):
+        xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
         ilist = []
         geurl   = uqp(geurl)
-#        url   = 'http://www.sonyliv.com/show/allEpisodeList?&showId=%s&offset=0&galleryId=&max=16' % url
         html  = getRequest(geurl)            
         c     = re.compile("<div title='(.+?)'.+?src='(.+?)'.+?</div").findall(html)
         for name, img in c:

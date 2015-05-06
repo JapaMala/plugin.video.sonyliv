@@ -123,6 +123,7 @@ def getCats(gsurl,catname):
               plot = catname
               img  = img.strip("'")
               mode = 'GE'
+              url   = 'http://www.sonyliv.com/show/allEpisodeList?&showId=%s&offset=0&galleryId=&max=16' % url
               u = '%s?url=%s&name=%s&mode=%s' % (sys.argv[0],qp(url), qp(name), mode)
               liz=xbmcgui.ListItem(name, '','DefaultFolder.png', img)
               liz.setInfo( 'Video', { "Title": name, "Studio":catname, "Plot": plot })
@@ -135,9 +136,9 @@ def getCats(gsurl,catname):
 
 def getEpis(geurl, catname):
         ilist = []
-        url   = uqp(geurl)
-        url   = 'http://www.sonyliv.com/show/allEpisodeList?&showId=%s&offset=0&galleryId=&max=100' % url
-        html  = getRequest(url)            
+        geurl   = uqp(geurl)
+#        url   = 'http://www.sonyliv.com/show/allEpisodeList?&showId=%s&offset=0&galleryId=&max=16' % url
+        html  = getRequest(geurl)            
         c     = re.compile("<div title='(.+?)'.+?src='(.+?)'.+?</div").findall(html)
         for name, img in c:
               url = img.rsplit('-',1)[1]
@@ -150,6 +151,17 @@ def getEpis(geurl, catname):
               liz.setProperty('fanart_image', addonfanart)
               liz.setProperty('IsPlayable', 'true')
               ilist.append((u, liz, False))
+        if len(ilist) == 16:
+              x = re.compile('offset=([0-9]*)&').search(geurl).group(1)
+              y = str(int(x)+16)
+              url = geurl.replace('offset='+x, 'offset='+y)
+              mode = 'GE'
+              name = '[COLOR blue]%s[/COLOR]' % __language__(30012)
+              u = '%s?url=%s&name=%s&mode=%s' % (sys.argv[0],qp(url), qp(name), mode)
+              liz=xbmcgui.ListItem(name, '','DefaultFolder.png', icon)
+              liz.setProperty('fanart_image', addonfanart)
+              ilist.append((u, liz, True))
+              
         if len(ilist) != 0:
           xbmcplugin.addDirectoryItems(int(sys.argv[1]), ilist, len(ilist))
 

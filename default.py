@@ -76,6 +76,13 @@ def getRequest(url, user_data=None, headers = defaultHeaders , alert=True, donot
 def getSources():
         xbmcplugin.setContent(int(sys.argv[1]), 'files')
         ilist = []
+        url = 'http://www.sonyliv.com/show/allMovies?offset=0&max=%s' %  str(pageSize)
+        name = 'Movies'
+        u = '%s?url=%s&name=%s&mode=%s' % (sys.argv[0],qp(url), qp(name), 'GM')
+        liz=xbmcgui.ListItem(name, '',icon, None)
+        liz.setProperty('fanart_image', addonfanart)
+        ilist.append((u, liz, True))
+        
         html = getRequest('http://www.sonyliv.com/show/list')
         a = re.compile('<div class="item genre.+?src=(.+?) .+?href="(.+?)">(.+?)<',re.DOTALL).findall(html)
         for iconImg,url,name in a:
@@ -180,10 +187,55 @@ def getEpis(geurl, catname):
              xbmc.executebuiltin("Container.SetViewMode(%s)" % addon.getSetting('episode_view'))
           xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+def getMovies(gmurl):
+        xbmcplugin.addSortMethod(int(sys.argv[1]),xbmcplugin.SORT_METHOD_UNSORTED)
+        xbmcplugin.addSortMethod(int(sys.argv[1]),xbmcplugin.SORT_METHOD_TITLE)
+        xbmcplugin.addSortMethod(int(sys.argv[1]),xbmcplugin.SORT_METHOD_EPISODE)
+        xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+        catname = 'Movies'
+        ilist = []
+        geurl   = uqp(gmurl)
+        html  = getRequest(gmurl)            
+        c     = re.compile("<a title='(.+?)'.+?href="+'"(.+?)"'+".+?src='(.+?)'.+?<span class=.+?</small>(.+?)<.+?</div",re.DOTALL).findall(html)
+        for name, murl, img, year in c:
+              html = getRequest(murl)
+              title, plot, url = re.compile('"og:title" content="(.+?)".+?"og:description" content="(.+?)".+?&amp;videoID=(.+?)&',re.DOTALL).search(html).groups()
+              infoList ={}
+              infoList['Title'] = h.unescape(title)
+              infoList['Plot']  = h.unescape(plot)
+              infoList['Year']  = int(year.strip())
 
-def getVideo(url):
+              u = '%s?url=%s&mode=GV1' % (sys.argv[0],qp(url))
+              liz=xbmcgui.ListItem(name, '',None, img)
+              liz.setInfo( 'Video', infoList)
+              liz.setProperty('fanart_image', addonfanart)
+              liz.setProperty('IsPlayable', 'true')
+              ilist.append((u, liz, False))
+        if len(ilist) == pageSize:
+              x = re.compile('offset=([0-9]*)&').search(gmurl).group(1)
+              y = str(int(x)+pageSize)
+              url = geurl.replace('offset='+x, 'offset='+y)
+              mode = 'GM'
+              name = '[COLOR blue]%s[/COLOR]' % __language__(30012)
+              u = '%s?url=%s&name=%s&mode=%s' % (sys.argv[0],qp(url), qp(catname), mode)
+              liz=xbmcgui.ListItem(name, '',nextIcon, None)
+              liz.setProperty('fanart_image', addonfanart)
+              ilist.append((u, liz, True))
+              
+        if len(ilist) != 0:
+          xbmcplugin.addDirectoryItems(int(sys.argv[1]), ilist, len(ilist))
+          xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+def getVideo1(url):
+    getVideo(url, mode = 1)
+
+def getVideo(url, mode = 0):
               bcid = uqp(url)
-              url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey=AQ~~,AAAApSSxphE~,wbrmvPDFim0fWkqLtb6niKsPCskpElR9&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'
+              if mode == 0:
+                 url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey=AQ~~,AAAApSSxphE~,wbrmvPDFim0fWkqLtb6niKsPCskpElR9&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'
+              else:
+                 url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey=AQ~~,AAAB051hNik~,6rCKhN0TFnnNKf3MD5ILa725PmUN9D_9&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'
+        
               html = getRequest(url)
               html = re.compile('experienceJSON = (.+?)\};',re.DOTALL).search(html).group(1)
               html = html+'}'
@@ -228,5 +280,6 @@ mode = p('mode',None)
 if mode==  None:  getSources()
 elif mode=='GC':  getCats(p('url'),p('name'))
 elif mode=='GE':  getEpis(p('url'),p('name'))
+elif mode=='GM':  getMovies(p('url'))
 elif mode=='GV':  getVideo(p('url'))
-
+elif mode=='GV1': getVideo1(p('url'))

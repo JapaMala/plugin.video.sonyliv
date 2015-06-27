@@ -148,7 +148,9 @@ def getEpis(geurl, catname):
                    dur = dur.strip()
                    for d in dur.split(':'): duration = duration*60+int(d)
               except: pass
-              title, plot, url = re.compile('"og:title" content="(.+?)".+?"og:description" content="(.+?)".+?&amp;videoID=(.+?)&',re.DOTALL).search(html).groups()
+              title, plot,playerKey,url = re.compile('"og:title" content="(.+?)".+?"og:description" content="(.+?)".+?playerKey=(.+?)&amp;videoID=(.+?)&',re.DOTALL).search(html).groups()
+              playerKey = playerKey.split(' ',1)[0]
+              playerKey = playerKey.split('=',1)[0]
               infoList ={}
               infoList['Title'] = h.unescape(title)
               infoList['TVShowTitle'] = catname
@@ -164,7 +166,7 @@ def getEpis(geurl, catname):
                   infoList['Aired'] = infoList['Date']
                   infoList['Year']  = int(dstr[2])
               except: pass
-              u = '%s?url=%s&mode=GV' % (sys.argv[0],qp(url))
+              u = '%s?url=%s&playerkey=%s&mode=GV' % (sys.argv[0],qp(url), playerKey)
               liz=xbmcgui.ListItem(name, '',None, img)
               liz.setInfo( 'Video', infoList)
               liz.setProperty('fanart_image', addonfanart)
@@ -199,13 +201,15 @@ def getMovies(gmurl):
         c     = re.compile("<a title='(.+?)'.+?href="+'"(.+?)"'+".+?src='(.+?)'.+?<span class=.+?</small>(.+?)<.+?</div",re.DOTALL).findall(html)
         for name, murl, img, year in c:
               html = getRequest(murl)
-              title, plot, url = re.compile('"og:title" content="(.+?)".+?"og:description" content="(.+?)".+?&amp;videoID=(.+?)&',re.DOTALL).search(html).groups()
+              title, plot,playerKey,url = re.compile('"og:title" content="(.+?)".+?"og:description" content="(.+?)".+?playerKey=(.+?)&amp;videoID=(.+?)&',re.DOTALL).search(html).groups()
+              playerKey = playerKey.split(' ',1)[0]
+              playerKey = playerKey.split('=',1)[0]
               infoList ={}
               infoList['Title'] = h.unescape(title)
               infoList['Plot']  = h.unescape(plot)
               infoList['Year']  = int(year.strip())
 
-              u = '%s?url=%s&mode=GV1' % (sys.argv[0],qp(url))
+              u = '%s?url=%s&playerkey=%s&mode=GV' % (sys.argv[0],qp(url), playerKey)
               liz=xbmcgui.ListItem(name, '',None, img)
               liz.setInfo( 'Video', infoList)
               liz.setProperty('fanart_image', addonfanart)
@@ -226,16 +230,14 @@ def getMovies(gmurl):
           xbmcplugin.addDirectoryItems(int(sys.argv[1]), ilist, len(ilist))
           xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def getVideo1(url):
-    getVideo(url, mode = 1)
 
-def getVideo(url, mode = 0):
+def getVideo(url, playerKey):
+              print "playerKey = '"+str(playerKey)+"'"
               bcid = uqp(url)
-              if mode == 0:
+              if (playerKey != 'AQ~~,AAABzYvvPDk~,iCNMB0hmLnxGz0SO_CwEK3e8q1VJusdj') and (playerKey != 'AQ~~,AAAB051hNik~,6rCKhN0TFnnNKf3MD5ILa725PmUN9D_9') :
                  url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey=AQ~~,AAAApSSxphE~,wbrmvPDFim0fWkqLtb6niKsPCskpElR9&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'
               else:
-                 url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey=AQ~~,AAAB051hNik~,6rCKhN0TFnnNKf3MD5ILa725PmUN9D_9&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'
-        
+                url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey='+playerKey+'&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'        
               html = getRequest(url)
               html = re.compile('experienceJSON = (.+?)\};',re.DOTALL).search(html).group(1)
               html = html+'}'
@@ -281,5 +283,4 @@ if mode==  None:  getSources()
 elif mode=='GC':  getCats(p('url'),p('name'))
 elif mode=='GE':  getEpis(p('url'),p('name'))
 elif mode=='GM':  getMovies(p('url'))
-elif mode=='GV':  getVideo(p('url'))
-elif mode=='GV1': getVideo1(p('url'))
+elif mode=='GV':  getVideo(p('url'),p('playerkey'))

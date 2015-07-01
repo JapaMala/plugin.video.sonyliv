@@ -232,16 +232,14 @@ def getMovies(gmurl):
 
 
 def getVideo(url, playerKey):
-              print "playerKey = '"+str(playerKey)+"'"
               bcid = uqp(url)
               if (playerKey != 'AQ~~,AAABzYvvPDk~,iCNMB0hmLnxGz0SO_CwEK3e8q1VJusdj') and (playerKey != 'AQ~~,AAAB051hNik~,6rCKhN0TFnnNKf3MD5ILa725PmUN9D_9') :
                  url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey=AQ~~,AAAApSSxphE~,wbrmvPDFim0fWkqLtb6niKsPCskpElR9&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'
               else:
                 url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=3780015692001&playerKey='+playerKey+'&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'        
               html = getRequest(url)
-              html = re.compile('experienceJSON = (.+?)\};',re.DOTALL).search(html).group(1)
-              html = html+'}'
-              a = json.loads(html)
+              m = re.compile('experienceJSON = (.+?)\};',re.DOTALL).search(html)
+              a = json.loads(html[m.start(1):m.end(1)+1])
               b = a['data']['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']
               u =''
               rate = 0

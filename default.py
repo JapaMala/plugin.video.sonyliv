@@ -142,7 +142,8 @@ def getEpis(geurl, catname):
               murl = 'http://www.sonyliv.com%s' % murl
               html = getRequest(murl)
               m =  re.compile('<div class="notification">.+?">(.+?)<',re.DOTALL).search(html)
-              aired   = m.group(1).strip()
+              try:    aired   = m.group(1).strip()
+              except: aired =''
               duration = 0
               try:
                    dur = dur.strip()

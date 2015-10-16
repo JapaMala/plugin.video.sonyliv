@@ -207,7 +207,8 @@ def getMovies(gmurl):
         for murl, name, img in c:
               html = getRequest(murl)
               playerKey = 'movie'
-              title, plot, url = re.compile('"og:title" content="(.+?)".+?"og:description" content="(.+?)".+?"og:video:secure_url" content="(.+?)"',re.DOTALL).search(html).groups()
+              try : title, plot, url = re.compile('"og:title" content="(.+?)".+?"og:description" content="(.+?)".+?"og:video:secure_url" content="(.+?)"',re.DOTALL).search(html).groups()
+              except: continue
               url = url.split('videoID=',1)[1].split('&',1)[0]
               infoList ={}
               infoList['Title'] = h.unescape(title)

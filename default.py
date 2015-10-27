@@ -117,7 +117,8 @@ def getCats(gsurl,catname):
               img  = img.strip("'")
               mode = 'GE'
               url   = 'http://www.sonyliv.com/show/allEpisodeList?&showId=%s&offset=0&galleryId=&max=%s' % (url, str(pageSize))
-              u = '%s?url=%s&name=%s&mode=%s' % (sys.argv[0],qp(url), qp(name), mode)
+              try:  u = '%s?url=%s&name=%s&mode=%s' % (sys.argv[0],qp(url), qp(name), mode)
+              except: continue
               liz=xbmcgui.ListItem(name, '','DefaultFolder.png', img)
               liz.setInfo( 'Video', { "Title": name, "Studio":catname, "Plot": plot })
               liz.setProperty('fanart_image', addonfanart)

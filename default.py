@@ -255,7 +255,14 @@ def getVideo(url, playerKey):
               html = getRequest(url)
               m = re.compile('experienceJSON = (.+?)\};',re.DOTALL).search(html)
               a = json.loads(html[m.start(1):m.end(1)+1])
-              b = a['data']['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']
+              try: b = a['data']['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']
+              except:
+                   url = 'https://secure.brightcove.com/services/viewer/htmlFederated?&width=859&height=482&flashID=BrightcoveExperience&bgcolor=%23FFFFFF&playerID=4338954681001&playerKey=AQ~~,AAAD8j3oFYk~,fDHFFMur_5DXDIFqSUkWtqHU8Fwf7wRy&isVid=true&isUI=true&dynamicStreaming=true&%40videoPlayer='+bcid+'&secureConnections=true&secureHTMLConnections=true'
+                   html = getRequest(url)
+                   m = re.compile('experienceJSON = (.+?)\};',re.DOTALL).search(html)
+                   a = json.loads(html[m.start(1):m.end(1)+1])
+                   b = a['data']['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']
+
               u =''
               rate = 0
               for c in b:
